@@ -22,8 +22,10 @@ theta1_min = theta1_values[np.argmin(j_values)]
 print(f'J достигает минимума при тета = {theta1_min}')
 
 #Построение графика зависимости J от theta1
-plt.figure(figsize=(7, 7))
+plt.figure(figsize=(10, 10))
 plt.plot(theta1_values, j_values, color='blue')
+plt.yticks(np.arange(min(j_values), max(j_values), 10000))
+plt.xticks(np.arange(-5.5, 6, 0.5))
 plt.xlabel('theta1')
 plt.ylabel('J(theta1)')
 plt.grid(True)

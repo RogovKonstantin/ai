@@ -13,8 +13,10 @@ def compute_error(theta_values, x, y):
 
 # Построение графика зависимости J от theta1
 def graph(theta_values, error_values, title, xlabel, ylabel):
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(10, 10))
     plt.plot(theta_values, error_values, label='J(theta1)', color='blue')
+    plt.yticks(np.arange(min(error_values), max(error_values), 10000))
+    plt.xticks(np.arange(-5.5, 6, 0.5))
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
