@@ -14,10 +14,10 @@ def write_csv(file_path, lines):
 
 
 def shuffle_data(lines):
-    for i in range(len(lines) - 1, 0, -1):
-        j = random.randint(0, i)
-        lines[i], lines[j] = lines[j], lines[i]
-
+    for _ in range(1000): 
+        for i in range(len(lines) - 1, 0, -1):
+            j = random.randint(0, i)
+            lines[i], lines[j] = lines[j], lines[i]
 
 def main(input_file, output_file):
     lines = read_csv(input_file)
