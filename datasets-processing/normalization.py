@@ -1,6 +1,6 @@
 import pandas as pd
 
-input_file = '../datasets/dataset_modified.csv'
+input_file = '../dataset/dataset_modified.csv'
 df = pd.read_csv(input_file)
 
 
@@ -22,5 +22,5 @@ calories_column = df.pop('Calories Burn')
 df['Calories Burn'] = calories_column
 
 
-output_file = '../datasets/normalized_data.csv'
+output_file = '../dataset/normalized_data.csv'
 df.to_csv(output_file, index=False)
