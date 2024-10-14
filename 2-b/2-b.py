@@ -2,12 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_approximating_lines(x, y_clean, y_noisy, theta1_values, title, filename):
+def plot_approximating_lines(x, y_clean, y_noisy, theta1_values, title, filename,
+                             tmin_c, tmin_n):
     plt.figure(figsize=(10, 6))
 
     for theta1 in theta1_values:
-        h_x_clean = theta1 * x
-        h_x_noisy = theta1 * x
+        if theta1 == theta1_values[0]:
+            h_x_clean = tmin_c * x
+            h_x_noisy = tmin_n * x
+        else:
+            h_x_clean = theta1 * x
+            h_x_noisy = theta1 * x
 
         # Прямые для чистых данных (синяя сплошная линия)
         plt.plot(x, h_x_clean, color='blue', alpha=0.7, linewidth=2,
@@ -60,14 +65,16 @@ y_noisy = x + np.random.uniform(-2, 2, x.shape)
 theta1_values_line = np.linspace(0, 2, 5)
 theta1_values_error = np.linspace(0, 2, 120)
 
-# Для прямых
-plot_approximating_lines(x, y_clean, y_noisy, theta1_values_line,
-                         "Аппроксимирующие прямые для чистых и зашумленных данных", 'lines.png')
-
 # Для ошибки
 theta1_min_clean, theta1_min_noisy = plot_error_function(x, y_clean, y_noisy, theta1_values_error,
                                                          "Функционал ошибки для чистых и зашумленных данных",
                                                          'error.png')
+
+# Для прямых
+plot_approximating_lines(x, y_clean, y_noisy, theta1_values_line,
+                         "Аппроксимирующие прямые для чистых и зашумленных данных", 'lines.png', theta1_min_clean, theta1_min_noisy)
+
+
 
 print(f'Минимум theta1 (Чистые данные): {theta1_min_clean}')
 print(f'Минимум theta1 (Зашумленные данные): {theta1_min_noisy}')
