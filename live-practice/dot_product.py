@@ -10,7 +10,7 @@ col2 = np.array([[4],
 print(col1.shape)
 print(col2.shape)
 
-vectorized = sum(col1[i][0] * col2[i][0] for i in range(len(col1)))
+vectorized = np.sum(col1 * col2)
 print(f"Скалярное произведение (сумма произведений): {vectorized}")
 
 byElements = 0
