@@ -3,9 +3,9 @@ import numpy as np
 
 def compute_cost_vector(x, y, theta):
     m = len(y)
-    predictions = x.dot(theta)
+    predictions = np.dot(x, theta)
     errors = predictions - y
-    cost = (1 / (2 * m)) * np.sum(errors ** 2)
+    cost = (1 / (2 * m)) * np.dot(errors, errors)
     return cost
 
 
