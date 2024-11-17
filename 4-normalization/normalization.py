@@ -60,14 +60,14 @@ for column in columns_to_process:
     std_by_def = calculate_std(column_data, mean_by_def)
 
     # Использование встроенных функций pandas
-    #mean_builtin = column_data.mean()
-    #std_builtin = column_data.std()
+    # mean_builtin = column_data.mean()
+    # std_builtin = column_data.std()
 
     print(f"Колонка: {column}")
     print(f"Среднее (по определению): {mean_by_def}")
-    #print(f"Среднее (встроенная функция): {mean_builtin}")
+    # print(f"Среднее (встроенная функция): {mean_builtin}")
     print(f"СКО (по определению): {std_by_def}")
-    #print(f"СКО (встроенная функция): {std_builtin}")
+    # print(f"СКО (встроенная функция): {std_builtin}")
     print("-" * 40)
 
 # Нормализация
