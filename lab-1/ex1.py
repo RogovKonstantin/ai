@@ -21,7 +21,7 @@ theta = np.zeros(2)
 iterations = 1500
 alpha = 0.01
 
-plot_data.plot_data(X[:, 1], Y)
+
 
 cost_vector = compute_cost.compute_cost_vector(X, Y, theta)
 print(f'Значение функции стоимости векторным способом: {cost_vector}')
@@ -34,6 +34,8 @@ print(f'Вектор параметров модели векторным спо
 
 theta_elements = gradient_descent.gradient_descent_elements(X, Y, theta, alpha, iterations)
 print(f'Вектор параметров модели поэлементным способом: {theta_elements}')
+
+plot_data.plot_data(X[:, 1], Y, theta_vector)
 
 cars = int(input("Введите количество автомобилей:"))
 profit_vector = work.prediction(cars, theta_vector)
