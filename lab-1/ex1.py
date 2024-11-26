@@ -5,10 +5,9 @@ import warm_up_exercise
 import work
 import plot_data
 
-size = int(input("Введите размерность матрицы:"))
-
-warm_up_exercise.warmup_exercise_built_in(size)
-warm_up_exercise.warmup_exercise_manual(size)
+#size = int(input("Введите размерность матрицы:"))
+#warm_up_exercise.warmup_exercise_built_in(size)
+#warm_up_exercise.warmup_exercise_manual(size)
 
 data = np.loadtxt('train_data.txt', delimiter=',')
 X = data[:, 0]
