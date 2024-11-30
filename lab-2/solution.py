@@ -62,7 +62,7 @@ plt.plot(range(1, num_iters + 1), J_history, '-b', linewidth=2)
 plt.xlabel('Количество итераций')
 plt.ylabel('Стоимость J')
 plt.title('Сходимость градиентного спуска')
-plt.savefig('1.png')
+plt.savefig('result.png')
 
 # Предсказание стоимости трактора с использованием градиентного спуска
 engine_speed = (1650 - mu[0]) / sigma[0]  # Нормировка (для градиентного спуска)
