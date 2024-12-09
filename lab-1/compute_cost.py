@@ -1,31 +1,33 @@
 import numpy as np
 
-
+# Функция для вычисления стоимости (функции потерь) с использованием векторного способа
 def compute_cost_vector(x, y, theta):
-    m = len(y)
-    predictions = np.dot(x, theta)
-    errors = predictions - y
-    cost = (1 / (2 * m)) * np.dot(errors, errors)
-    return cost
+    m = len(y)  # Количество примеров в обучающей выборке
+    predictions = np.dot(x, theta)  # Вычисляем предсказания модели
+    errors = predictions - y  # Вычисляем ошибку (разницу между предсказаниями и реальными значениями)
+    cost = (1 / (2 * m)) * np.dot(errors, errors)  # Стоимость (функция потерь)
+    return cost  # Возвращаем значение функции стоимости
 
-
+# Функция для вычисления стоимости поэлементным способом
 def compute_cost_elements(X, Y, theta):
-    m = len(Y)
-    total_cost = 0
+    m = len(Y)  # Количество примеров в обучающей выборке
+    total_cost = 0  # Инициализация переменной для общей стоимости
 
+    # Проходим по всем примерам в обучающей выборке
     for i in range(m):
         prediction = 0
-
+        # Рассчитываем предсказание для каждого примера, используя параметры модели
         for j in range(len(theta)):
-            prediction += theta[j] * X[i][j]
+            prediction += theta[j] * X[i][j]  # Вычисление предсказания
+
         error = 0
+        # Рассчитываем ошибку для каждого примера
         for j in range(len(theta)):
-            error += (theta[j] * X[i][j])
+            error += (theta[j] * X[i][j])  # Ошибка для каждого параметра
 
-        error -= Y[i]
-        total_cost += error ** 2
+        error -= Y[i]  # Разница между предсказанием и реальным значением
+        total_cost += error ** 2  # Добавляем квадрат ошибки к общей стоимости
 
+    # Рассчитываем среднюю стоимость по всем примерам
     cost = (1 / (2 * m)) * total_cost
-    return cost
-
-
+    return cost  # Возвращаем значение функции стоимости
