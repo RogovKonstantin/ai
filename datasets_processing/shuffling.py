@@ -32,7 +32,7 @@ def main(input_file, output_file):
     write_csv(output_file, shuffled_lines)
 
 
-input_file_path = '../dataset/dataset_modified.csv'
+input_file_path = '../dataset/dataset_cleaned.csv'
 output_file_path = '../dataset/dataset_final.csv'
 
 main(input_file_path, output_file_path)
