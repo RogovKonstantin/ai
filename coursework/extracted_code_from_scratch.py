@@ -14,6 +14,7 @@ class LogRegression:
         # Training loop (gradient descent)
         for i in range(self.epochs):
             self.update_weights(X, Y)
+
         return self
 
     def update_weights(self, X, Y):
@@ -48,6 +49,15 @@ class LogRegression:
     def dot_product(self, X_row, W):
         return sum(X_row[j] * W[j] for j in range(len(W)))
 
+    def mean_squared_error(self, predictions, Y):
+        mse = sum((predictions[i] - Y[i]) ** 2 for i in range(len(Y))) / len(Y)
+        return mse
+
+    def accuracy(self, predictions, Y):
+        correct = sum(1 for i in range(len(predictions)) if predictions[i] == Y[i])
+        return correct / len(Y)
+
+# Data reading and preprocessing
 def read_data(file_path):
     X = []
     Y = []
@@ -69,20 +79,38 @@ def read_data(file_path):
 
     return X, Y
 
-# Replace with your actual data file path
+# Split data into training and testing sets
+def train_test_split(X, Y, test_size=0.2):
+    indices = list(range(len(X)))
+    split_idx = int(len(X) * (1 - test_size))
+    train_indices = indices[:split_idx]
+    test_indices = indices[split_idx:]
+
+    X_train = [X[i] for i in train_indices]
+    Y_train = [Y[i] for i in train_indices]
+    X_test = [X[i] for i in test_indices]
+    Y_test = [Y[i] for i in test_indices]
+
+    return X_train, X_test, Y_train, Y_test
+
+# Main script
 X, Y = read_data("framingham_heart_disease.csv")
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y)
 
-# Instantiate the model
+# Instantiate and train the model
 regressor = LogRegression(epochs=1000, lr=0.01)
+regressor.fit(X_train, Y_train)
 
-# Train the model
-regressor.fit(X, Y)
+# Predict and compute metrics
+Y_train_pred = regressor.predict(X_train)
+Y_test_pred = regressor.predict(X_test)
 
-# Predict on the same dataset (for testing purposes)
-Y_pred = regressor.predict(X)
+train_accuracy = regressor.accuracy(Y_train_pred, Y_train)
+test_accuracy = regressor.accuracy(Y_test_pred, Y_test)
+train_mse = regressor.mean_squared_error(Y_train_pred, Y_train)
+test_mse = regressor.mean_squared_error(Y_test_pred, Y_test)
 
-# Calculate accuracy manually
-correctly_classified = sum(1 for i in range(len(Y_pred)) if Y[i] == Y_pred[i])
-accuracy = (correctly_classified / len(Y_pred)) * 100
-
-print("Accuracy:", accuracy)
+print("Training Accuracy:", train_accuracy)
+print("Test Accuracy:", test_accuracy)
+print("Training MSE:", train_mse)
+print("Test MSE:", test_mse)
