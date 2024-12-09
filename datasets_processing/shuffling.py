@@ -32,7 +32,7 @@ def main(input_file, output_file):
     write_csv(output_file, shuffled_lines)
 
 
-input_file_path = '../dataset/normalized_data.csv'
-output_file_path = '../dataset/normalized_shuffled_dataset.csv'
+input_file_path = '../dataset/dataset_modified.csv'
+output_file_path = '../dataset/dataset_final.csv'
 
 main(input_file_path, output_file_path)

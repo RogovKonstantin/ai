@@ -94,7 +94,7 @@ def train_test_split(X, Y, test_size=0.2):
     return X_train, X_test, Y_train, Y_test
 
 # Main script
-X, Y = read_data("framingham_heart_disease.csv")
+X, Y = read_data("../dataset/dataset.csv")
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y)
 
 # Instantiate and train the model
