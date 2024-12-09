@@ -1,7 +1,7 @@
 import pandas as pd
 
-input_csv = '../dataset/dataset.csv'
-output_csv = '../dataset/dataset_cleaned.csv'
+input_csv = '../dataset.csv'
+output_csv = '../dataset_cleaned.csv'
 
 data = pd.read_csv(input_csv)
 

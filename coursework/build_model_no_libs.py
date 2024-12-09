@@ -77,7 +77,7 @@ def mean_squared_error(y_true, y_pred):
 
 
 if __name__ == "__main__":
-    file_path = '../dataset/dataset_final.csv'
+    file_path = 'datasets/dataset_final.csv'
     X, Y = read_data(file_path)
 
     cols_to_be_normalized = [0, 1, 2, 3, 4, 5, 6, 7]
