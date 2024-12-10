@@ -1,52 +1,53 @@
 import numpy as np
-import compute_cost
-import gradient_descent
-import warm_up_exercise
+import computeCost
+import gradientDescent
+import plotData
+import warmUpExercise
 import work
-import plot_data
 
-#size = int(input("Введите размерность матрицы:"))
-#warm_up_exercise.warmup_exercise_built_in(size)
-#warm_up_exercise.warmup_exercise_manual(size)
+# Разминка
+# matrixSize = int(input("Введите размерность: "))
+# warmUpExercise.warm_up_exercise(matrixSize)
 
-data = np.loadtxt('train_data.txt', delimiter=',')  # Загружаем данные из текстового файла
-X = data[:, 0]  # Признаки (количество автомобилей)
-Y = data[:, 1]  # Целевые значения (прибыль)
-m = len(Y)  # Количество примеров в обучающей выборке
+# Загрузка данных
+data = np.loadtxt('train_data.txt', delimiter=',')
+X = data[:, 0]
+Y = data[:, 1]
+# Переменная m используется для нормализации функции стоимости (чтобы учитывать количество данных)
+m = len(Y)
 
-# Добавляем столбец единиц в матрицу признаков для свободного члена
+# Добавление столбца единиц к массиву признаков. Для учета свободного члена в модели линейной регрессии
 X = np.column_stack((np.ones(m), X))
 
-# Инициализируем параметры модели
-theta = np.zeros(2)  # Начальные параметры модели (ноль)
-iterations = 1500  # Количество итераций для градиентного спуска
-alpha = 0.01  # Скорость обучения
+theta = np.zeros(2)
+iterations = 1500
+alpha = 0.01
 
-# Вычисляем стоимость векторным способом
-cost_vector = compute_cost.compute_cost_vector(X, Y, theta)
-print(f'Значение функции стоимости векторным способом: {cost_vector}')
+# Вычисление стоимости (векторное)
+costByVector = computeCost.computeCostByVector(X, Y, theta)
+print(f'Значение функции стоимости(векторный способ): {costByVector}')
 
-# Вычисляем стоимость поэлементным способом
-cost_elements = compute_cost.compute_cost_elements(X, Y, theta)
-print(f'Значение функции стоимости поэлементным способом: {cost_elements}')
+# Вычисление стоимости (поэлементное)
+costByElements = computeCost.computeCostByElements(X, Y, theta)
+print(f'Значение функции стоимости(поэлементный способ): {costByElements}')
 
-# Выполняем градиентный спуск для нахождения параметров модели векторным способом
-theta_vector = gradient_descent.gradient_descent_vector(X, Y, theta, alpha, iterations)
-print(f'Вектор параметров модели векторным способом: {theta_vector}')
+# Градиентный спуск (векторный)
+thetaByVector = gradientDescent.gradientDescentByVector(X, Y, theta, alpha, iterations)
+print(f'Градиентный спуск(векторный способ): {thetaByVector}')
 
-# Выполняем градиентный спуск для нахождения параметров модели поэлементным способом
-theta_elements = gradient_descent.gradient_descent_elements(X, Y, theta, alpha, iterations)
-print(f'Вектор параметров модели поэлементным способом: {theta_elements}')
+# Градиентный спуск (поэлементный)
+thetaByElements = gradientDescent.gradientDescentByElements(X, Y, theta, alpha, iterations)
+print(f'Градиентный спуск(поэлементный способ): {thetaByElements}')
 
-# Строим график зависимости прибыли от количества автомобилей с полученными параметрами
-plot_data.plot_data(X[:, 1], Y, theta_vector)
+# Количество автомобилей, введенное пользователем
+cars = int(input("Введите количество автомобилей: "))
 
-# Прогнозируем прибыль для заданного количества автомобилей
-cars = int(input("Введите количество автомобилей:"))
-profit_vector = work.prediction(cars, theta_vector)  # Прогноз по векторному способу
-profit_elements = work.prediction(cars, theta_elements)  # Прогноз по поэлементному способу
+# Вычисление прибыли на основе моделей
+profitByVector = work.predict_profit(cars, thetaByVector)
+profitByElements = work.predict_profit(cars, thetaByElements)
 
-print(f"Прогнозируемая прибыль (векторный способ): {profit_vector}")
-print(f"Прогнозируемая прибыль (поэлементный способ): {profit_elements}")
+print(f"Прогнозируемая прибыль СТО (векторный способ): {profitByVector}")
+print(f"Прогнозируемая прибыль СТО (поэлементный способ): {profitByElements}")
 
-
+# Визуализация данных и добавление точки с предсказанным результатом
+plotData.plot(X[:, 1], Y, thetaByVector, cars, profitByVector)
