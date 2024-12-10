@@ -3,6 +3,7 @@ from sklearn.preprocessing import normalize
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, mean_squared_error
+from joblib import dump, load
 
 data = pd.read_csv('datasets/dataset_final.csv')
 
@@ -35,3 +36,11 @@ print("Training Accuracy:", train_accuracy)
 print("Test Accuracy:", test_accuracy)
 print("Training MSE:", train_mse)
 print("Test MSE:", test_mse)
+
+
+model_path = "model_with_libs.joblib"
+dump(classifier, model_path)
+print(f"Model saved to {model_path}")
+
+# Load the model and make predictions
+loaded_model = load(model_path)

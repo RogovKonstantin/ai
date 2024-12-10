@@ -88,6 +88,16 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = train_test_split(X_normalized, Y)
 
     weights = logistic_regression(X_train, y_train)
+    # Save weights
+    weights_path = "model_no_libs_weights.txt"
+    with open(weights_path, "w") as f:
+        for weight in weights:
+            f.write(f"{weight}\n")
+    print(f"Weights saved to {weights_path}")
+
+    # Load weights
+    with open(weights_path, "r") as f:
+        loaded_weights = [float(line.strip()) for line in f]
 
     y_train_pred = predict(X_train, weights)
     y_test_pred = predict(X_test, weights)
