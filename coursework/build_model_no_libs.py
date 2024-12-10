@@ -94,9 +94,6 @@ if __name__ == "__main__":
         for weight in weights:
             f.write(f"{weight}\n")
 
-    # Load weights
-    with open(weights_path, "r") as f:
-        loaded_weights = [float(line.strip()) for line in f]
 
     # Get predictions
     y_train_pred = predict(X_train, weights)
