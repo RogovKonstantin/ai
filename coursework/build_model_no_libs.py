@@ -50,7 +50,7 @@ def predict(X, weights):
     y_pred = []
     for x in X:
         z = sum(w * x_i for w, x_i in zip(weights, x))
-        y_pred.append(1 if sigmoid(z) >= 0.5 else 0)
+        y_pred.append(1 if sigmoid(z) < 0.5 else 0)
     return y_pred
 
 
@@ -93,21 +93,27 @@ if __name__ == "__main__":
     with open(weights_path, "w") as f:
         for weight in weights:
             f.write(f"{weight}\n")
-    print(f"Weights saved to {weights_path}")
 
     # Load weights
     with open(weights_path, "r") as f:
         loaded_weights = [float(line.strip()) for line in f]
 
+    # Get predictions
     y_train_pred = predict(X_train, weights)
     y_test_pred = predict(X_test, weights)
 
-    train_accuracy = accuracy(y_train, y_train_pred)
-    test_accuracy = accuracy(y_test, y_test_pred)
-    train_mse = mean_squared_error(y_train, y_train_pred)
-    test_mse = mean_squared_error(y_test, y_test_pred)
+    # Reverse predictions
+    y_train_pred_reversed = [1 - pred for pred in y_train_pred]
+    y_test_pred_reversed = [1 - pred for pred in y_test_pred]
+
+    # Compute metrics with reversed predictions
+    train_accuracy = accuracy(y_train, y_train_pred_reversed)
+    test_accuracy = accuracy(y_test, y_test_pred_reversed)
+    train_mse = mean_squared_error(y_train, y_train_pred_reversed)
+    test_mse = mean_squared_error(y_test, y_test_pred_reversed)
 
     print("Training Accuracy:", train_accuracy)
     print("Test Accuracy:", test_accuracy)
     print("Training MSE:", train_mse)
     print("Test MSE:", test_mse)
+

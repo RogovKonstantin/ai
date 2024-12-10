@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.preprocessing import normalize
 from joblib import load
-from build_model_no_libs import read_data, normalize_data, predict  # Import functions from the no-libs implementation
+from build_model_no_libs import normalize_data, predict
 
 # File paths for the models and dataset
 dataset_path = "datasets/dataset_final.csv"
@@ -28,8 +28,8 @@ Y = df_final["TenYearCHD"]
 
 # Extract 10 test cases from the middle of the dataset
 middle_index = len(X) // 2
-start_index = middle_index +40  # Start 5 cases before the middle
-end_index = middle_index + 50   # End 5 cases after the middle
+start_index = middle_index -800  # Adjusted indices
+end_index = middle_index -700
 
 test_cases = X.iloc[start_index:end_index].values
 actual_values = Y.iloc[start_index:end_index].values
@@ -37,7 +37,10 @@ actual_values = Y.iloc[start_index:end_index].values
 # === Predictions with Libraries Model ===
 # Load the model
 libs_model = load(libs_model_path)
-libs_predictions = libs_model.predict(test_cases)
+
+# Pass test cases with feature names
+test_cases_with_names = pd.DataFrame(test_cases, columns=X.columns)
+libs_predictions = libs_model.predict(test_cases_with_names)
 
 # === Predictions with No Libraries Model ===
 # Load weights

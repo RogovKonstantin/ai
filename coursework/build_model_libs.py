@@ -40,7 +40,3 @@ print("Test MSE:", test_mse)
 
 model_path = "model_with_libs.joblib"
 dump(classifier, model_path)
-print(f"Model saved to {model_path}")
-
-# Load the model and make predictions
-loaded_model = load(model_path)
