@@ -23,7 +23,7 @@ plt.xlabel("Vibration")
 plt.ylabel("Rotation")
 plt.legend()
 plt.title("Engine Data")
-plt.show()
+plt.savefig("x.png")
 
 # Разделение на обучающую и тестовую выборки
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
@@ -45,6 +45,7 @@ print(f"Accuracy: {accuracy:.2f}")
 print("\nClassification Report:")
 print(classification_report(y_test, y_pred))
 
+# Визуализация границы принятия решений
 x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
 y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
 xx, yy = np.meshgrid(np.linspace(x_min, x_max, 200),
@@ -61,4 +62,4 @@ plt.xlabel("Vibration")
 plt.ylabel("Rotation")
 plt.legend()
 plt.title("Decision Boundary")
-plt.show()
+plt.savefig("libs_decision_boundary.png")
