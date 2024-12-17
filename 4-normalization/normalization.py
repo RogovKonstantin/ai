@@ -1,110 +1,82 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-file_path = "ex1data2.txt"
-data = pd.read_csv(file_path, header=None, names=["Скорость Оборота Двигателя", "Количество Передач", "Цена"])
+# Загрузка данных из файла
+data = pd.read_csv('ex1data2.txt', header=None)
+data.columns = ['Engine_Speed', 'Num_Gears', 'Price']
 
+# Нормировка 1: делим на максимальное значение
+data_normalized_1 = data.copy()
+data_normalized_1.iloc[:, 0] = data.iloc[:, 0] / data.iloc[:, 0].max()  # Engine_Speed
+data_normalized_1.iloc[:, 1] = data.iloc[:, 1] / data.iloc[:, 1].max()  # Num_Gears
+data_normalized_1.iloc[:, 2] = data.iloc[:, 2] / data.iloc[:, 2].max()  # Price
 
-def normalize_max(data):
-    """
-    Формула: x'_j = x_j / max(x_j)
-    """
-    return data / data.max()
+# Нормировка 2: центрируем и делим на диапазон (max - min)
+# (x - u) / (max(X) - min(X))
+data_normalized_2 = data.copy()
+data_normalized_2.iloc[:, 0] = (data.iloc[:, 0] - data.iloc[:, 0].mean()) / (
+            data.iloc[:, 0].max() - data.iloc[:, 0].min())
+data_normalized_2.iloc[:, 1] = (data.iloc[:, 1] - data.iloc[:, 1].mean()) / (
+            data.iloc[:, 1].max() - data.iloc[:, 1].min())
+data_normalized_2.iloc[:, 2] = (data.iloc[:, 2] - data.iloc[:, 2].mean()) / (
+            data.iloc[:, 2].max() - data.iloc[:, 2].min())
 
+# Нормировка 3: центрируем и делим на стандартное отклонение
+# (x - u) / std(X)
+#  std = (1/n* sum((x - u)**2))**0.5
+data_normalized_3 = data.copy()
+data_normalized_3.iloc[:, 0] = (data.iloc[:, 0] - data.iloc[:, 0].mean()) / data.iloc[:, 0].std()
+data_normalized_3.iloc[:, 1] = (data.iloc[:, 1] - data.iloc[:, 1].mean()) / data.iloc[:, 1].std()
+data_normalized_3.iloc[:, 2] = (data.iloc[:, 2] - data.iloc[:, 2].mean()) / data.iloc[:, 2].std()
 
-def normalize_range(data):
-    """
-    Формула: x'_j = (x_j - mean(x_j)) / (max(x_j) - min(x_j))
-    """
-    mean = data.mean()
-    range_ = data.max() - data.min()
-    return (data - mean) / range_
+# Визуализация исходных и нормализованных данных
+plt.figure(figsize=(12, 10))
 
-
-def normalize_std(data):
-    """
-    Формула: x'_j = (x_j - mean(x_j)) / std(x_j)
-    """
-    mean = data.mean()
-    std = data.std()
-    return (data - mean) / std
-
-
-# Вычисление среднего и стандартного отклонения явно по определению
-def calculate_mean(data):
-    """
-    Среднее значение: mean = sum(x_i) / N
-    """
-    return sum(data) / len(data)
-
-
-def calculate_std(data, mean):
-    """
-    Стандартное отклонение: std = sqrt(sum((x_i - mean)^2) / N)
-    """
-    variance = sum((x - mean) ** 2 for x in data) / len(data)
-    return variance ** 0.5
-
-
-# Признаки и целевая переменная
-features = data.iloc[:, :-1]
-price = data.iloc[:, -1]
-
-# Добавление целевой переменной в список для обработки
-columns_to_process = features.join(price).columns
-
-# Вычисление среднего и СКО по каждой колонке
-for column in columns_to_process:
-    column_data = data[column]
-    mean_by_def = calculate_mean(column_data)
-    std_by_def = calculate_std(column_data, mean_by_def)
-
-    # Использование встроенных функций pandas
-    mean_builtin = column_data.mean()
-    std_builtin = column_data.std()
-
-    print(f"Колонка: {column}")
-    print(f"Среднее (по определению): {mean_by_def}")
-    print(f"Среднее (встроенная функция): {mean_builtin}")
-    print(f"СКО (по определению): {std_by_def}")
-    print(f"СКО (встроенная функция): {std_builtin}")
-    print("-" * 40)
-
-# Нормализация
-norm_max = features.apply(normalize_max, axis=0)
-norm_range = features.apply(normalize_range, axis=0)
-norm_std = features.apply(normalize_std, axis=0)
-
-# Построение графиков
-plt.figure(figsize=(12, 12))
-
+# Исходные данные (только признаки)
 plt.subplot(2, 2, 1)
-plt.scatter(features.iloc[:, 0], price, color="blue")
-plt.xlabel("Скорость Оборота Двигателя")
-plt.ylabel("Цена")
-plt.title("Исходные Признаки")
-plt.grid()
+plt.scatter(data['Engine_Speed'], data['Num_Gears'], color='blue')
+plt.title('Исходные Признаки')
+plt.xlabel('Скорость Оборота Двигателя')
+plt.ylabel('Количество Передач')
 
+# Нормированные данные (первый способ)
 plt.subplot(2, 2, 2)
-plt.scatter(norm_max.iloc[:, 0], price, color="green")
-plt.xlabel("Скорость Оборота Двигателя (норм.)")
-plt.ylabel("Цена")
-plt.title("Нормировка 1 (max)")
-plt.grid()
+plt.scatter(data_normalized_1['Engine_Speed'], data_normalized_1['Num_Gears'], color='green')
+plt.title('Нормировка 1 (max)')
+plt.xlabel('Скорость Оборота Двигателя (нормированная)')
+plt.ylabel('Количество Передач (нормированная)')
 
+# Нормированные данные (второй способ)
 plt.subplot(2, 2, 3)
-plt.scatter(norm_range.iloc[:, 0], price, color="red")
-plt.xlabel("Скорость Оборота Двигателя (норм.)")
-plt.ylabel("Цена")
-plt.title("Нормировка 2 (max - min)")
-plt.grid()
+plt.scatter(data_normalized_2['Engine_Speed'], data_normalized_2['Num_Gears'], color='red')
+plt.title('Нормировка 2 (max - min)')
+plt.xlabel('Скорость Оборота Двигателя (нормированная)')
+plt.ylabel('Количество Передач (нормированная)')
 
+# Нормированные данные (третий способ)
 plt.subplot(2, 2, 4)
-plt.scatter(norm_std.iloc[:, 0], price, color="purple")
-plt.xlabel("Скорость Оборота Двигателя (норм.)")
-plt.ylabel("Цена")
-plt.title("Нормировка 3 (стандартное отклонение)")
-plt.grid()
+plt.scatter(data_normalized_3['Engine_Speed'], data_normalized_3['Num_Gears'], color='purple')
+plt.title('Нормировка 3 (стандартное отклонение)')
+plt.xlabel('Скорость Оборота Двигателя (нормированная)')
+plt.ylabel('Количество Передач (нормированная)')
 
 plt.tight_layout()
-plt.savefig("normalized_features.png")
+plt.savefig('normalized_features.png')
+
+# Стандартные функции Python
+means_explicit = {}
+std_devs_explicit = {}
+
+for col in data.columns:
+    means_explicit[col] = sum(data[col]) / len(data[col])
+    std_devs_explicit[col] = (sum((data[col] - means_explicit[col]) ** 2) / (len(data[col]))) ** 0.5
+
+print("Средние значения (явное вычисление):\n", means_explicit)
+print("Стандартные отклонения (явное вычисление):\n", std_devs_explicit)
+
+# Явно по определению
+means_std = data.mean()
+std_devs_std = data.std()
+
+print("Средние значения (стандартные функции):\n", means_std)
+print("Стандартные отклонения (стандартные функции):\n", std_devs_std)
