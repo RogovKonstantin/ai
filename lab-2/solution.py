@@ -1,82 +1,114 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 
-def load_data(filename):
-    data = pd.read_csv(filename, header=None)
-    X = data.iloc[:, :-1].values  # Признаки
-    y = data.iloc[:, -1].values  # Целевая переменная
-    return X, y
+def load_data(filepath):
+    """Загрузка данных из указанного файла."""
+    raw_data = pd.read_csv(filepath, header=None)
+    features = raw_data.iloc[:, :-1].values
+    target = raw_data.iloc[:, -1].values
+    return features, target
 
 
-def featureNormalize(X):
-    mu = np.mean(X, axis=0)  # Среднее значение
-    sigma = np.std(X, axis=0)  # Стандартное отклонение
-    X_norm = (X - mu) / sigma  # Нормировка
-    return X_norm, mu, sigma
+def normalize_features(features):
+    """Стандартизация признаков путем вычитания среднего и деления на стандартное отклонение."""
+    means = np.mean(features, axis=0)
+    std_devs = np.std(features, axis=0)
+    standardized_features = (features - means) / std_devs
+    return standardized_features, means, std_devs
 
 
-def computeCostMulti(X, y, theta):
-    m = len(y)  # количество примеров
-    J = (1 / (2 * m)) * np.sum(np.square(X @ theta - y))
-    return J
+def calculate_cost(features, target, parameters):
+    """Расчет стоимости функции для линейной регрессии."""
+    num_samples = len(target)
+    errors = features @ parameters - target
+    cost = (1 / (2 * num_samples)) * np.sum(errors ** 2)
+    return cost
 
 
-def gradientDescentMulti(X, y, theta, alpha, num_iters):
-    m = len(y)
-    J_history = np.zeros(num_iters)
+def gradient_descent(features, target, parameters, learning_rate, iterations):
+    """Градиентный спуск для оптимизации параметров."""
+    num_samples = len(target)
+    cost_history = np.zeros(iterations)
 
-    for i in range(num_iters):
-        theta = theta - (alpha / m) * (X.T @ (X @ theta - y))
-        J_history[i] = computeCostMulti(X, y, theta)
+    for i in range(iterations):
+        gradient = (features.T @ (features @ parameters - target)) / num_samples
+        parameters -= learning_rate * gradient
+        cost_history[i] = calculate_cost(features, target, parameters)
 
-    return theta, J_history
+    return parameters, cost_history
 
 
-def normalEqn(X, y):
-    theta = np.linalg.inv(X.T @ X) @ X.T @ y
-    return theta
+def solve_normal_equation(features, target):
+    """Вычисление параметров линейной регрессии через нормальное уравнение."""
+    parameters = np.linalg.pinv(features.T @ features) @ (features.T @ target)
+    return parameters
 
 
 # Загрузка данных
-X, y = load_data('ex1data2.txt')
-m = len(y)
+features, target = load_data('ex1data2.txt')
+sample_count = len(target)
 
-# Нормировка признаков
-X_norm, mu, sigma = featureNormalize(X)
+# Нормализация данных
+normalized_features, feature_means, feature_stds = normalize_features(features)
 
-# Добавление единичного столбца к X
-X_norm = np.hstack((np.ones((m, 1)), X_norm))
+# Добавление единичного столбца для bias
+normalized_features = np.c_[np.ones((sample_count, 1)), normalized_features]
 
-# Установка параметров
-alpha = 0.01
-num_iters = 100
-theta = np.zeros(X_norm.shape[1])
+# Настройки градиентного спуска
+learning_rate = 0.05
+max_iterations = 100
+initial_parameters = np.zeros(normalized_features.shape[1])
 
 # Запуск градиентного спуска
-theta, J_history = gradientDescentMulti(X_norm, y, theta, alpha, num_iters)
+optimized_parameters, cost_history = gradient_descent(
+    normalized_features, target, initial_parameters, learning_rate, max_iterations
+)
 
-# Визуализация стоимости
-plt.plot(range(1, num_iters + 1), J_history, '-b', linewidth=2)
-plt.xlabel('Количество итераций')
-plt.ylabel('Стоимость J')
-plt.title('Сходимость градиентного спуска')
-plt.savefig('result.png')
+# Сохранение графика изменения функции стоимости
+plt.figure()
+plt.plot(range(1, max_iterations + 1), cost_history, '-r', linewidth=2)
+plt.xlabel('Итерации')
+plt.ylabel('Значение стоимости')
+plt.title('Процесс сходимости')
+plt.savefig('convergence_plot.png')
+plt.close()
 
-# Предсказание стоимости трактора с использованием градиентного спуска
-engine_speed = (1650 - mu[0]) / sigma[0]  # Нормировка (для градиентного спуска)
-num_gears = (3 - mu[1]) / sigma[1]  # Нормировка (для градиентного спуска)
+# Решение с использованием нормального уравнения
+features_with_bias = np.c_[np.ones((sample_count, 1)), features]
+normal_parameters = solve_normal_equation(features_with_bias, target)
 
-predicted_price = np.array([[1, engine_speed, num_gears]]) @ theta
-print(f'Предсказанная стоимость трактора (градиентный спуск): {predicted_price[0]:.2f}')
+# Ввод данных пользователем для предсказания
+print("\n--- Предсказание стоимости ---")
+engine_speed = float(input("Введите скорость двигателя: "))
+gear_count = float(input("Введите количество передач: "))
 
-# Аналитическое решение
-theta_normal = normalEqn(np.hstack((np.ones((m, 1)), X)), y)
+# Нормализация данных пользователя для градиентного спуска
+engine_speed_norm = (engine_speed - feature_means[0]) / feature_stds[0]
+gear_count_norm = (gear_count - feature_means[1]) / feature_stds[1]
+user_input_gd = np.array([[1, engine_speed_norm, gear_count_norm]])
 
-# Нормировка для аналитического предсказания
-normalized_engine_speed = (1650 - mu[0]) / sigma[0]  # Нормировка
-normalized_num_gears = (3 - mu[1]) / sigma[1]  # Нормировка
+# Предсказания
+predicted_gd = user_input_gd @ optimized_parameters
+predicted_ne = np.array([[1, engine_speed, gear_count]]) @ normal_parameters
 
-predicted_price_normal = np.array([[1, normalized_engine_speed, normalized_num_gears]]) @ theta_normal
-print(f'Предсказанная стоимость трактора (аналитическое решение): {predicted_price_normal[0]:.2f}')
+print(f"Предсказанная стоимость (Градиентный спуск): {predicted_gd[0]:.2f}")
+print(f"Предсказанная стоимость (Нормальное уравнение): {predicted_ne[0]:.2f}")
+
+# 3D-график
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+ax.scatter(features[:, 0], features[:, 1], target, c='b', label='Фактические значения')
+ax.scatter(engine_speed, gear_count, predicted_gd[0], c='r', s=100, label='Предсказание (ГС)')
+ax.scatter(engine_speed, gear_count, predicted_ne[0], c='g', s=100, label='Предсказание (НЕ)')
+
+ax.set_xlabel('Скорость двигателя')
+ax.set_ylabel('Количество передач')
+ax.set_zlabel('Стоимость')
+ax.set_title('Сравнение значений')
+ax.legend()
+
+plt.savefig('predictions_comparison.png')
+plt.close()
