@@ -2,14 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-
 def load_data(filepath):
     """Загрузка данных из указанного файла."""
     raw_data = pd.read_csv(filepath, header=None)
     features = raw_data.iloc[:, :-1].values
     target = raw_data.iloc[:, -1].values
     return features, target
-
 
 def normalize_features(features):
     """Стандартизация признаков путем вычитания среднего и деления на стандартное отклонение."""
@@ -18,7 +16,6 @@ def normalize_features(features):
     standardized_features = (features - means) / std_devs
     return standardized_features, means, std_devs
 
-
 def calculate_cost(features, target, parameters):
     """Расчет стоимости функции для линейной регрессии."""
     num_samples = len(target)
@@ -26,25 +23,20 @@ def calculate_cost(features, target, parameters):
     cost = (1 / (2 * num_samples)) * np.sum(errors ** 2)
     return cost
 
-
 def gradient_descent(features, target, parameters, learning_rate, iterations):
     """Градиентный спуск для оптимизации параметров."""
     num_samples = len(target)
     cost_history = np.zeros(iterations)
-
     for i in range(iterations):
         gradient = (features.T @ (features @ parameters - target)) / num_samples
         parameters -= learning_rate * gradient
         cost_history[i] = calculate_cost(features, target, parameters)
-
     return parameters, cost_history
-
 
 def solve_normal_equation(features, target):
     """Вычисление параметров линейной регрессии через нормальное уравнение."""
     parameters = np.linalg.pinv(features.T @ features) @ (features.T @ target)
     return parameters
-
 
 # Загрузка данных
 features, target = load_data('ex1data2.txt')
@@ -89,26 +81,28 @@ engine_speed_norm = (engine_speed - feature_means[0]) / feature_stds[0]
 gear_count_norm = (gear_count - feature_means[1]) / feature_stds[1]
 user_input_gd = np.array([[1, engine_speed_norm, gear_count_norm]])
 
+# Данные без нормализации
+user_input_ne = np.array([[1, engine_speed, gear_count]])
+
 # Предсказания
 predicted_gd = user_input_gd @ optimized_parameters
-predicted_ne = np.array([[1, engine_speed, gear_count]]) @ normal_parameters
+predicted_ne = user_input_ne @ normal_parameters
 
-print(f"Предсказанная стоимость (Градиентный спуск): {predicted_gd[0]:.2f}")
-print(f"Предсказанная стоимость (Нормальное уравнение): {predicted_ne[0]:.2f}")
+# Вывод в консоль предсказаний
+print(f"\nРезультаты предсказания:\n")
+print(f"- Предсказанная стоимость с нормализацией (Градиентный спуск): {predicted_gd[0]:.2f}")
+print(f"- Предсказанная стоимость без нормализации (Нормальное уравнение): {predicted_ne[0]:.2f}")
 
 # 3D-график
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-
 ax.scatter(features[:, 0], features[:, 1], target, c='b', label='Фактические значения')
 ax.scatter(engine_speed, gear_count, predicted_gd[0], c='r', s=100, label='Предсказание (ГС)')
 ax.scatter(engine_speed, gear_count, predicted_ne[0], c='g', s=100, label='Предсказание (НЕ)')
-
 ax.set_xlabel('Скорость двигателя')
 ax.set_ylabel('Количество передач')
 ax.set_zlabel('Стоимость')
 ax.set_title('Сравнение значений')
 ax.legend()
-
 plt.savefig('predictions_comparison.png')
 plt.close()
