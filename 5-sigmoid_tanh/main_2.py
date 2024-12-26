@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-
 # Заданные точки
 points = [0, 3, -3, 8, -8, 15, -15]
 

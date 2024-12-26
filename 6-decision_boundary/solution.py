@@ -1,33 +1,56 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Модель: f(x1, x2) = 1 + 2x2 + x1*x2 + x1^2
-def model(x1, x2):
-    return 1 + 2 * x2 + x1 * x2 + x1**2
+def decision_boundary_plot():
+    # Параметры модели:
+    # theta0=1, theta1=0, theta2=2, theta3=1, theta4=1, theta5=0
+    theta0, theta1, theta2, theta3, theta4, theta5 = 1, 0, 2, 1, 1, 0
 
-# Заданный критерий принятия решения
-alpha = 0.5
+    # Шаг 1. Создаём сетку (x1, x2), на которой будем вычислять z.
+    x1_vals = np.linspace(-12, 12, 300)
+    x2_vals = np.linspace(-12, 12, 300)
+    X1, X2 = np.meshgrid(x1_vals, x2_vals)
 
-# Генерация значений для x1
-x1 = np.linspace(-3, 3, 500)  # Диапазон x1
-x2 = (-1 - x1**2 - 0.5*x1 + alpha) / 2  # Выражение x2 через x1
+    # Шаг 2. Вычисляем z на всей сетке.
+    # z = theta0 + theta1*x1 + theta2*x2 + theta3*(x1*x2) + theta4*x1^2 + theta5*x2^2
+    Z = (theta0
+         + theta1 * X1
+         + theta2 * X2
+         + theta3 * (X1 * X2)
+         + theta4 * X1**2
+         + theta5 * X2**2)
 
-# Создание сетки для визуализации областей
-x1_grid, x2_grid = np.meshgrid(np.linspace(-3, 3, 500), np.linspace(-3, 3, 500))
-f_values = model(x1_grid, x2_grid)
+    # Шаг 3. Строим контур по уровню z=0 (это и есть разделяющая кривая).
+    plt.figure(figsize=(8, 6))
+    # levels=[0] означает: строим контур(ы) по уровню z = 0
+    contour = plt.contour(X1, X2, Z, levels=[0], colors='red', linewidths=2)
+    contour.collections[0].set_label("decision boundary (z=0)")
 
-# Построение графика
-plt.figure(figsize=(8, 6))
-plt.contourf(x1_grid, x2_grid, f_values, levels=[-np.inf, alpha, np.inf], colors=['lightblue', 'lightcoral'], alpha=0.6)
-plt.contour(x1_grid, x2_grid, f_values, levels=[alpha], colors='black', linewidths=1.5)
-plt.plot(x1, x2, label="Разделяющая кривая", color='blue')
+    # Шаг 4. Заштриховываем области:
+    #   - Z < 0 (класс 0)
+    #   - Z > 0 (класс 1)
+    # Для удобства используем plt.contourf c двумя уровнями.
+    # levels = [-∞, 0, +∞] => область ниже 0 и область выше 0
+    plt.contourf(X1, X2, Z, levels=[Z.min(), 0, Z.max()],
+                 colors=['lightblue', 'lightgreen'], alpha=0.5)
 
-# Подписи и оформление
-plt.title("Граница разделения классов", fontsize=14)
-plt.xlabel("x1", fontsize=12)
-plt.ylabel("x2", fontsize=12)
-plt.axhline(0, color='gray', linewidth=0.5, linestyle='--')
-plt.axvline(0, color='gray', linewidth=0.5, linestyle='--')
-plt.legend(fontsize=12)
-plt.grid(alpha=0.3)
-plt.savefig('result.png')
+    # Легенду для классов можно дополнительно подписать вручную:
+    class_0_patch = plt.Rectangle((0,0), 0, 0, facecolor='lightblue', alpha=0.5,
+                                  label='Class 0 (z < 0)')
+    class_1_patch = plt.Rectangle((0,0), 0, 0, facecolor='lightgreen', alpha=0.5,
+                                  label='Class 1 (z > 0)')
+    plt.gca().add_patch(class_0_patch)
+    plt.gca().add_patch(class_1_patch)
+
+    # Подписи осей и легенда
+    plt.xlabel("x1")
+    plt.ylabel("x2")
+    plt.title("Разделяющая кривая для логистической регрессии (при alpha=0.5)")
+    plt.legend(loc='upper right')
+    plt.grid(True)
+
+    plt.savefig('boundary.png')
+
+
+if __name__ == "__main__":
+    decision_boundary_plot()
