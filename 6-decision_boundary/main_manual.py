@@ -74,7 +74,7 @@ def manual_decision_boundary_plot_no_bridge():
     # -- 6) Оформляем, подписываем
     plt.xlabel("x1")
     plt.ylabel("x2")
-    plt.title("Разделяющая кривая без 'моста' между ветвями")
+    plt.title("Разделяющая кривая между ветвями")
 
     # Легенда
     class_0_patch = plt.Rectangle((0,0), 0, 0, facecolor='lightblue', alpha=0.8,
