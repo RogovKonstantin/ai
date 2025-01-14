@@ -112,4 +112,4 @@ for col in sheet.columns:
         adjusted_width = max_length + 2
         sheet.column_dimensions[col[0].column_letter].width = adjusted_width
 
-wb.save("../model_comparison.xlsx")
+wb.save("../../results/model_comparison.xlsx")
