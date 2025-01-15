@@ -24,12 +24,11 @@ def preprocess_and_save():
     1) Загружает ../dataset.csv с использованием pandas.
     2) Удаляет строки с пропущенными значениями.
     3) Применяет стандартизацию Z-score к числовым признакам.
-    4) Сохраняет моду категориальных признаков.
-    5) Перемешивает набор данных.
-    6) Делит данные на обучающую и тестовую выборки и сохраняет их в файлы:
+    4) Перемешивает набор данных.
+    5) Делит данные на обучающую и тестовую выборки и сохраняет их в файлы:
        - ../normalized_shuffled_train.csv
        - ../normalized_shuffled_test.csv
-    7) Сохраняет график сравнения распределений в ../standardization_comparison_all_features.png.
+    6) Сохраняет график сравнения распределений в ../standardization_comparison_all_features.png
     """
 
     # ------------------ Загрузка набора данных ------------------ #
@@ -61,15 +60,9 @@ def preprocess_and_save():
         scales[feature] = std
         dataset[feature] = (dataset[feature] - mean) / std
 
-    # --------------- Сохраняем моду категориальных признаков --------------- #
-    modes = {}
-    for feature in categorical_features:
-        modes[feature] = dataset[feature].mode()[0]
-
-    # Сохраняем параметры масштабирования и моды
-    print("Сохранение параметров масштабирования и мод в файл:", 'scaler_params.pkl')
+    print("Сохранение параметров масштабирования в файл:", 'scaler_params.pkl')
     with open('scaler_params.pkl', "wb") as f:
-        pickle.dump({"means": means, "scales": scales, "modes": modes}, f)
+        pickle.dump({"means": means, "scales": scales}, f)
 
     # ------------------ Перемешивание набора данных ------------------ #
     dataset = shuffle_data(dataset, seed=42)
@@ -77,7 +70,7 @@ def preprocess_and_save():
     # --------------- Разделение набора данных на обучающую и тестовую выборки --------------- #
     train_size = int(0.75 * len(dataset))
     train_data = dataset.iloc[:train_size]
-    test_data = dataset.iloc[train_size:].drop(columns=['TenYearCHD'])
+    test_data = dataset.iloc[train_size:]
 
     # --------------- Сохранение обработанных данных --------------- #
     train_data.to_csv('../normalized_shuffled_train.csv', index=False)
@@ -97,7 +90,6 @@ def preprocess_and_save():
     plt.tight_layout()
     plt.savefig('../standardization_comparison_all_features.png')
     plt.close()
-
 
 # Добавляем основной блок для выполнения функции
 if __name__ == "__main__":
