@@ -1,29 +1,44 @@
+import random
 import pickle
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+
+# Определяем функцию для перемешивания данных
+def shuffle_data(dataframe, seed=42):
+    """
+    Перемешивает строки DataFrame вручную для воспроизводимости результатов.
+    """
+    # Устанавливаем фиксированное значение seed для воспроизводимости
+    random.seed(seed)
+    # Преобразуем данные в список списков для удобства перестановок
+    lines = dataframe.values.tolist()
+    # Алгоритм перемешивания: для каждого элемента выбираем случайный индекс и меняем элементы местами
+    for i in range(len(lines) - 1, 0, -1):
+        j = random.randint(0, i)
+        lines[i], lines[j] = lines[j], lines[i]
+    # Преобразуем данные обратно в DataFrame с исходными столбцами
+    return pd.DataFrame(lines, columns=dataframe.columns)
 
 def preprocess_and_save():
     """
-    1) Loads ../dataset.csv using pandas.
-    2) Drops NA rows.
-    3) Applies Z-score standardization to numerical features.
-    4) Shuffles dataset.
-    5) Splits into train/test sets and saves them to:
+    1) Загружает ../dataset.csv с использованием pandas.
+    2) Удаляет строки с пропущенными значениями.
+    3) Применяет стандартизацию Z-score к числовым признакам.
+    4) Сохраняет моду категориальных признаков.
+    5) Перемешивает набор данных.
+    6) Делит данные на обучающую и тестовую выборки и сохраняет их в файлы:
        - ../normalized_shuffled_train.csv
        - ../normalized_shuffled_test.csv
-    6) Saves distribution comparison plot to ../standardization_comparison_all_features.png
+    7) Сохраняет график сравнения распределений в ../standardization_comparison_all_features.png.
     """
 
-    # ------------------ Load the dataset ------------------ #
+    # ------------------ Загрузка набора данных ------------------ #
     original_dataset = pd.read_csv('../dataset.csv')
 
-    # Drop rows with any missing values
+    # Удаление строк с любыми пропущенными значениями
     original_dataset = original_dataset.dropna()
 
-    # Identify numerical and categorical features
+    # Определение числовых и категориальных признаков
     numerical_features = [
         'age', 'cigsPerDay', 'totChol', 'sysBP',
         'diaBP', 'BMI', 'heartRate', 'glucose'
@@ -33,68 +48,57 @@ def preprocess_and_save():
         'prevalentStroke', 'prevalentHyp', 'diabetes'
     ]
 
-    # We will work on a copy for standardization
+    # Создаем копию данных для стандартизации
     dataset = original_dataset.copy()
 
-    # --------------- Apply Z-score standardization --------------- #
-    scaler = StandardScaler()
-    dataset[numerical_features] = scaler.fit_transform(dataset[numerical_features])
-    print("Saving scaler parameters to:", 'scaler_params.pkl')
-    pickle.dump({"means": scaler.mean_, "scales": scaler.scale_}, open('scaler_params.pkl', "wb"))
+    # --------------- Применяем стандартизацию Z-score --------------- #
+    means = {}
+    scales = {}
+    for feature in numerical_features:
+        mean = dataset[feature].mean()
+        std = dataset[feature].std()
+        means[feature] = mean
+        scales[feature] = std
+        dataset[feature] = (dataset[feature] - mean) / std
 
-    # ------------------ Shuffle the dataset ------------------ #
-    dataset = dataset.sample(frac=1, random_state=42).reset_index(drop=True)
+    # --------------- Сохраняем моду категориальных признаков --------------- #
+    modes = {}
+    for feature in categorical_features:
+        modes[feature] = dataset[feature].mode()[0]
 
-    # --------------- Split the dataset into train/test --------------- #
-    train_data, test_data = train_test_split(dataset, test_size=0.25, random_state=42)
+    # Сохраняем параметры масштабирования и моды
+    print("Сохранение параметров масштабирования и мод в файл:", 'scaler_params.pkl')
+    with open('scaler_params.pkl', "wb") as f:
+        pickle.dump({"means": means, "scales": scales, "modes": modes}, f)
 
-    # --------------- Save the processed data --------------- #
+    # ------------------ Перемешивание набора данных ------------------ #
+    dataset = shuffle_data(dataset, seed=42)
+
+    # --------------- Разделение набора данных на обучающую и тестовую выборки --------------- #
+    train_size = int(0.75 * len(dataset))
+    train_data = dataset.iloc[:train_size]
+    test_data = dataset.iloc[train_size:].drop(columns=['TenYearCHD'])
+
+    # --------------- Сохранение обработанных данных --------------- #
     train_data.to_csv('../normalized_shuffled_train.csv', index=False)
     test_data.to_csv('../normalized_shuffled_test.csv', index=False)
 
-    # --------------- Visualization: Compare distributions --------------- #
-    rows = (len(numerical_features) + 2) // 3
-    fig, axes = plt.subplots(rows, 3, figsize=(15, 5 * rows))
-    axes = axes.flatten()
+    # --------------- Визуализация: сравнение распределений --------------- #
+    fig, axes = plt.subplots(len(numerical_features), 1, figsize=(10, 5 * len(numerical_features)))
 
     for idx, feature in enumerate(numerical_features):
-        # Before standardization (original_dataset)
-        sns.histplot(
-            original_dataset[feature],
-            bins=30,
-            kde=True,
-            color='blue',
-            label='Before Standardization',
-            stat="density",
-            alpha=0.5,
-            ax=axes[idx]
-        )
-        # After standardization (dataset)
-        sns.histplot(
-            dataset[feature],
-            bins=30,
-            kde=True,
-            color='orange',
-            label='After Standardization',
-            stat="density",
-            alpha=0.5,
-            ax=axes[idx]
-        )
-        axes[idx].set_title(f'Distribution of "{feature}"')
+        axes[idx].hist(original_dataset[feature], bins=30, alpha=0.5, label='До стандартизации', color='blue')
+        axes[idx].hist(dataset[feature], bins=30, alpha=0.5, label='После стандартизации', color='orange')
+        axes[idx].set_title(f'Распределение признака "{feature}"')
         axes[idx].set_xlabel(feature)
-        axes[idx].set_ylabel('Density')
+        axes[idx].set_ylabel('Частота')
         axes[idx].legend()
 
-    # Remove any extra subplots
-    for ax in axes[len(numerical_features):]:
-        fig.delaxes(ax)
-
-    fig.suptitle('Comparison of Distributions Before and After Standardization',
-                 fontsize=16, y=0.92)
     plt.tight_layout()
     plt.savefig('../standardization_comparison_all_features.png')
     plt.close()
 
-# Add the main block to execute the function
+
+# Добавляем основной блок для выполнения функции
 if __name__ == "__main__":
     preprocess_and_save()

@@ -50,7 +50,7 @@ predictions_manual = predict_manual(X, weights)
 
 wb = openpyxl.Workbook()
 sheet = wb.active
-sheet.title = "Model Comparison"
+sheet.title = "Сравнение моделей"
 
 color_both_right = PatternFill(start_color="90EE90", end_color="90EE90", fill_type="solid")
 color_lib_right = PatternFill(start_color="ADD8E6", end_color="ADD8E6", fill_type="solid")

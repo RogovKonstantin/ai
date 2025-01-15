@@ -1,147 +1,131 @@
 """
-File: gui_predict.py
+Файл: gui_predict.py
 
-A simple Tkinter GUI that:
-1) Prompts for each of the 15 features from your dataset:
-   - 8 numeric features that need standardization
-   - 7 categorical features (e.g., 0 or 1).
-2) Applies the same standard scaling (using stored means & stds).
-3) Loads manual logistic regression weights from model_manual_weights.txt.
-4) Displays predicted TenYearCHD (0 or 1).
+Простое графическое приложение на Tkinter, которое:
+1) Запрашивает 15 признаков из вашего набора данных:
+   - 8 числовых признаков, требующих стандартизации
+   - 7 категориальных признаков (например, 0 или 1).
+2) Применяет ту же стандартизацию (используя сохраненные средние и стандартные отклонения).
+3) Загружает веса логистической регрессии из файла model_manual_weights.txt.
+4) Показывает предсказанный результат.
 """
 
 import tkinter as tk
 import pickle
 import math
 
-# 1) We'll define your numerical & categorical features.
-numerical_features = ['age','cigsPerDay','totChol','sysBP','diaBP','BMI','heartRate','glucose']
-categorical_features = ['male','education','currentSmoker','BPMeds','prevalentStroke','prevalentHyp','diabetes']
-all_features = numerical_features + categorical_features
+# 1) Определяем числовые и категориальные признаки с переводом.
+numerical_features = {
+    'age': 'Возраст',
+    'cigsPerDay': 'Сигарет в день',
+    'totChol': 'Общий холестерин',
+    'sysBP': 'Систолическое АД',
+    'diaBP': 'Диастолическое АД',
+    'BMI': 'Индекс массы тела',
+    'heartRate': 'Частота пульса',
+    'glucose': 'Уровень глюкозы'
+}
+categorical_features = {
+    'male': 'Мужчина',
+    'education': 'Уровень образования',
+    'currentSmoker': 'Курильщик',
+    'BPMeds': 'Препараты от давления',
+    'prevalentStroke': 'Инсульт в анамнезе',
+    'prevalentHyp': 'Гипертония',
+    'diabetes': 'Диабет'
+}
+all_features = list(numerical_features.keys()) + list(categorical_features.keys())
 
-# 2) Load your precomputed means & scales from a pickle file (or you could hard-code them).
-#    This file was presumably saved during "preprocess_and_save()" or after you fit your StandardScaler.
+# 2) Загружаем параметры масштабирования.
 try:
     scaler_params = pickle.load(open("../datasets/datasets_processing/scaler_params.pkl", "rb"))
-    means = scaler_params["means"]  # list of shape [8]
-    scales = scaler_params["scales"]  # list of shape [8]
+    means = scaler_params["means"]
+    scales = scaler_params["scales"]
+    modes = scaler_params["modes"]  # Добавляем моды категориальных признаков
 except Exception as e:
-    print("Error loading scaler parameters:", e)
-    print("Be sure to place 'scaler_params.pkl' in the same folder or adjust the path.")
-    means = [0]*8  # fallback, but won't produce correct scaling
-    scales = [1]*8
+    print("Ошибка загрузки параметров масштабирования:", e)
+    means = {}
+    scales = {}
+    modes = {}
 
-# 3) Load the manual logistic regression weights
+# 3) Функция для загрузки весов.
 def load_manual_weights(file_path):
     with open(file_path, 'r') as f:
         weights_str = f.read().strip().split(',')
     return list(map(float, weights_str))
 
-# Sigmoid for the manual prediction
+# 4) Сигмоида.
 def sigmoid(z):
     return 1 / (1 + math.exp(-z))
 
-# Manual predict function
+# 5) Предсказание.
 def predict_manual(inputs, weights):
-    """
-    inputs: an array of length (15) with already standardized numeric features
-            and unmodified categorical features at the end.
-    weights: array of length 16 (1 bias + 15 features)
-    """
-    # Add bias term
     x_with_bias = [1.0] + inputs
-    # Dot product
-    z = sum(w*x for w,x in zip(weights, x_with_bias))
-    prob = sigmoid(z)
-    return 1 if prob >= 0.5 else 0
+    z = sum(w * x for w, x in zip(weights, x_with_bias))
+    return 1 if sigmoid(z) >= 0.5 else 0
 
-# GUI Class
+# 6) Графический интерфейс.
 class HeartDiseasePredictorGUI:
     def __init__(self, master):
         self.master = master
-        self.master.title("TenYearCHD Prediction (Manual Model)")
+        self.master.title("Предсказание")
 
-        # We'll store the input Entry widgets in a dictionary
         self.entries = {}
-
         row_index = 0
 
-        tk.Label(master, text="Enter numeric features (unscaled):").grid(row=row_index, column=0, columnspan=2, pady=5, sticky="w")
-
+        # Числовые признаки
+        tk.Label(master, text="Введите числовые признаки:").grid(row=row_index, column=0, columnspan=2, pady=5, sticky="w")
         row_index += 1
-        for feat in numerical_features:
-            tk.Label(master, text=f"{feat}:").grid(row=row_index, column=0, padx=5, pady=2, sticky="e")
+        for feat, label in numerical_features.items():
+            tk.Label(master, text=f"{label}:").grid(row=row_index, column=0, padx=5, pady=2, sticky="e")
             entry = tk.Entry(master)
+            entry.insert(0, f"{means.get(feat, 0):.2f}")
             entry.grid(row=row_index, column=1, padx=5, pady=2)
             self.entries[feat] = entry
             row_index += 1
 
-        tk.Label(master, text="Enter categorical features (0 or 1, or numeric for 'education'):").grid(row=row_index, column=0, columnspan=2, pady=5, sticky="w")
+        # Категориальные признаки
+        tk.Label(master, text="Введите категориальные признаки:").grid(row=row_index, column=0, columnspan=2, pady=5, sticky="w")
         row_index += 1
-        for feat in categorical_features:
-            tk.Label(master, text=f"{feat}:").grid(row=row_index, column=0, padx=5, pady=2, sticky="e")
+        for feat, label in categorical_features.items():
+            tk.Label(master, text=f"{label}:").grid(row=row_index, column=0, padx=5, pady=2, sticky="e")
             entry = tk.Entry(master)
+            entry.insert(0, f"{modes.get(feat, 0)}")  # Используем моду
             entry.grid(row=row_index, column=1, padx=5, pady=2)
             self.entries[feat] = entry
             row_index += 1
 
-        # Predict button
-        self.predict_button = tk.Button(master, text="Predict CHD", command=self.on_predict)
+        # Кнопка предсказания
+        self.predict_button = tk.Button(master, text="Предсказать", command=self.on_predict)
         self.predict_button.grid(row=row_index, column=0, columnspan=2, pady=10)
 
         row_index += 1
-        # Result label
         self.result_label = tk.Label(master, text="", font=("Helvetica", 12, "bold"))
         self.result_label.grid(row=row_index, column=0, columnspan=2, pady=10)
 
-        # Load the manual weights
         self.manual_weights = load_manual_weights("../models/model_manual_weights.txt")
 
     def on_predict(self):
-        """
-        Gathers all user input, applies standard scaling to numeric features,
-        leaves categorical features as is, then uses manual logistic regression
-        weights to predict TenYearCHD.
-        """
-        # 1) Get the user input from Entry widgets
-        user_input_numeric = []
-        for i, feat in enumerate(numerical_features):
-            val_str = self.entries[feat].get().strip()
-            try:
-                val_float = float(val_str)
-            except:
-                val_float = 0.0
-            user_input_numeric.append(val_float)
+        # Проверяем ввод
+        for key, entry in self.entries.items():
+            if not entry.get().strip():
+                self.result_label.config(text="Заполните все поля!", fg="red")
+                return
 
-        user_input_categorical = []
-        for feat in categorical_features:
-            val_str = self.entries[feat].get().strip()
-            try:
-                val_float = float(val_str)
-            except:
-                val_float = 0.0
-            user_input_categorical.append(val_float)
+        # Считываем ввод
+        user_input_numeric = [float(self.entries[feat].get()) for feat in numerical_features]
+        user_input_categorical = [float(self.entries[feat].get()) for feat in categorical_features]
 
-        # 2) Standardize the numeric features using means/scales
-        #    numeric z = (val - mean) / scale
-        standardized_numeric = []
-        for i, val in enumerate(user_input_numeric):
-            z = (val - means[i]) / scales[i]  # replicate the StandardScaler
-            standardized_numeric.append(z)
+        # Стандартизируем числовые признаки
+        standardized_numeric = [(val - means.get(feat, 0)) / scales.get(feat, 1) for val, feat in zip(user_input_numeric, numerical_features)]
 
-        # 3) Combine standardized numeric + raw categorical
         all_inputs = standardized_numeric + user_input_categorical
 
-        # 4) Predict with manual logistic regression
+        # Предсказание
         prediction = predict_manual(all_inputs, self.manual_weights)
 
-        # 5) Show result
-        if prediction == 1:
-            msg = "Prediction: CHD within 10 years (1)"
-        else:
-            msg = "Prediction: No CHD within 10 years (0)"
-
-        self.result_label.config(text=msg)
+        msg = "Результат: риск есть (1)" if prediction == 1 else "Результат: риска нет (0)"
+        self.result_label.config(text=msg, fg="green")
 
 
 if __name__ == "__main__":
