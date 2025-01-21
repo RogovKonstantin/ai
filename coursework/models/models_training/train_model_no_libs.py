@@ -111,12 +111,55 @@ if __name__ == "__main__":
     print("Начало обучения модели с использованием градиентного спуска...")
     weights, errors, accuracies = train_manual(X_train, y_train, epochs=EPOCHS, learning_rate=LR)
 
-    # Шаг 4: Оценка финальной модели
-    metrics = evaluate_manual(weights, X_train, y_train)
-    print("Итоговые метрики обучения:", metrics)
-
-    # Шаг 5: Сохранение весов модели (смещение + коэффициенты)
+    # Шаг 4: Сохранение весов модели
     with open(weights_save_path, 'w') as f:
         f.write(','.join(map(str, weights)))
     print(f"Веса модели сохранены в: {weights_save_path}")
+
+    print("Создание графиков...")
+
+    # Создание графиков без использования импортов наверху
+    def plot_graph(x, y, title, xlabel, ylabel, filepath, color='blue'):
+        import matplotlib.pyplot as plt
+        plt.figure()
+        plt.plot(x, y, color=color, label=ylabel)
+        plt.title(title)
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.legend()
+        plt.savefig(filepath)
+        plt.close()
+
+    epochs_range = list(range(1, EPOCHS + 1))
+
+    # График ошибки MSE
+    plot_graph(
+        epochs_range,
+        errors,
+        title='Ошибка обучения (MSE) от эпохи',
+        xlabel='Эпоха',
+        ylabel='MSE',
+        filepath='../manual_model_mse_plot.png',
+        color='blue'
+    )
+
+    # График точности
+    plot_graph(
+        epochs_range,
+        accuracies,
+        title='Точность обучения от эпохи',
+        xlabel='Эпоха',
+        ylabel='Точность',
+        filepath='../manual_model_accuracy_plot.png',
+        color='orange'
+    )
+
+    print("Графики успешно сохранены.")
+
+    # Шаг 5: Вывод итоговых метрик обучения
+    metrics = evaluate_manual(weights, X_train, y_train)
+    print("Итоговые метрики обучения:")
+    for metric, value in metrics.items():
+        print(f"{metric}: {value:.4f}")
+
     print("Обучение завершено.")

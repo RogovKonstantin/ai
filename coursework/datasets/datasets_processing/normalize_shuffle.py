@@ -29,6 +29,7 @@ def preprocess_and_save():
        - ../normalized_shuffled_train.csv
        - ../normalized_shuffled_test.csv
     6) Сохраняет график сравнения распределений в ../standardization_comparison_all_features.png
+    7) Сохраняет параметры масштабирования и моды категориальных признаков в scaler_params.pkl
     """
 
     # ------------------ Загрузка набора данных ------------------ #
@@ -60,9 +61,14 @@ def preprocess_and_save():
         scales[feature] = std
         dataset[feature] = (dataset[feature] - mean) / std
 
-    print("Сохранение параметров масштабирования в файл:", 'scaler_params.pkl')
+    # Вычисляем моды для категориальных признаков
+    modes = {}
+    for feature in categorical_features:
+        modes[feature] = dataset[feature].mode()[0]
+
+    print("Сохранение параметров масштабирования и мод в файл:", 'scaler_params.pkl')
     with open('scaler_params.pkl', "wb") as f:
-        pickle.dump({"means": means, "scales": scales}, f)
+        pickle.dump({"means": means, "scales": scales, "modes": modes}, f)
 
     # ------------------ Перемешивание набора данных ------------------ #
     dataset = shuffle_data(dataset, seed=42)
