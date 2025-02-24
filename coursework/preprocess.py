@@ -1,6 +1,7 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
+import random
 
 # Load the raw insurance dataset
 df = pd.read_csv("insurance.csv")
@@ -9,7 +10,7 @@ df = pd.read_csv("insurance.csv")
 df_before_shuffle = df.copy()
 
 # Assign an index column before shuffling to track movement
-df_before_shuffle["original_index"] = np.arange(len(df))
+df_before_shuffle["original_index"] = list(range(len(df)))
 
 # -------------------------------
 # 1. Label-encode categorical columns
@@ -31,18 +32,22 @@ for col in ['age', 'bmi', 'children']:
 # -------------------------------
 # 3. Log-transform the target
 # -------------------------------
-df['charges'] = np.log(df['charges'])
-df_before_shuffle['charges'] = np.log(df_before_shuffle['charges'])  # Log-transform before shuffling
+df['charges'] = df['charges'].apply(lambda x: x if x <= 0 else np.log(x))
+df_before_shuffle['charges'] = df_before_shuffle['charges'].apply(lambda x: x if x <= 0 else np.log(x))
 
 # -------------------------------
-# 4. Manually Shuffle the Data
+# 4. Manually Shuffle the Data (Fisher-Yates Algorithm)
 # -------------------------------
-np.random.seed(42)  # Ensure reproducibility
-shuffled_indices = np.random.permutation(len(df))  # Generate shuffled indices
-df = df.iloc[shuffled_indices].reset_index(drop=True)  # Apply shuffle
+random.seed(42)  # Ensure reproducibility
+df_list = df.values.tolist()
 
-# Assign shuffled index for visualization
-df["shuffled_index"] = np.arange(len(df))
+for i in range(len(df_list) - 1, 0, -1):
+    j = random.randint(0, i)
+    df_list[i], df_list[j] = df_list[j], df_list[i]
+
+df = pd.DataFrame(df_list, columns=df.columns)
+
+df["shuffled_index"] = list(range(len(df)))
 
 # Split manually into train and test sets (70% train, 30% test)
 split_point = int(0.7 * len(df))
@@ -83,7 +88,7 @@ fig, axes = plt.subplots(1, 2, figsize=(12, 10))
 
 columns_to_plot = ['age', 'bmi']
 for i, col in enumerate(columns_to_plot):
-    ax = axes[i ]
+    ax = axes[i]
     ax.hist(df_before_shuffle[col], bins=20, alpha=0.5, label="До нормализации")
     ax.hist(df[col], bins=20, alpha=0.5, label="После нормализации", color='red')
     ax.set_title(f"Feature: {col}")
