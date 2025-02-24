@@ -1,4 +1,3 @@
-# File: predict_ui.py
 import tkinter as tk
 from tkinter import ttk, messagebox
 import pandas as pd
@@ -17,7 +16,7 @@ default_sex = df['sex'].mode()[0]       # 'male' or 'female'
 default_smoker = df['smoker'].mode()[0]   # 'no' or 'yes'
 default_region = df['region'].mode()[0]
 
-# Compute normalization parameters for numeric features (as used in preprocess_split.py)
+# Compute normalization parameters for numeric features
 mean_age = df['age'].mean()
 std_age  = df['age'].std()
 
@@ -36,17 +35,17 @@ sex_map = {'male': 0, 'female': 1}
 # For smoker: no=0, yes=1
 smoker_map = {'no': 0, 'yes': 1}
 
-# For region: use the order in which they first appear in the dataset
+# For region: assign integer values (NOT one-hot encoding)
 region_mapping = {region: i for i, region in enumerate(df['region'].unique())}
-# Prepare a list of region names (in the same order as used in training)
-region_list = list(region_mapping.keys())
+region_list = list(region_mapping.keys())  # List of regions for UI dropdown
 
 # ----------------------------------------------------------------------------
-# 3. Load the learned model parameters (theta_libs.txt) from the libs model
+# 3. Load the learned model parameters (theta_libs.txt)
 # ----------------------------------------------------------------------------
 theta_libs = np.loadtxt("theta_libs.txt")
-# NOTE: The model was trained on the numeric dataset where features were:
-# [intercept, normalized age, encoded sex, normalized bmi, normalized children, encoded smoker, encoded region]
+
+# Print the shape of theta_libs to debug
+print(f"Loaded theta_libs shape: {theta_libs.shape}")  # Should be (8,)
 
 # ----------------------------------------------------------------------------
 # 4. Define a prediction function that transforms raw inputs
@@ -67,11 +66,14 @@ def predict_charge(raw_age, raw_sex, raw_bmi, raw_children, raw_smoker, raw_regi
     # Map categorical features
     mapped_sex = sex_map[raw_sex.lower()]
     mapped_smoker = smoker_map[raw_smoker.lower()]
-    mapped_region = region_mapping[raw_region]
+    mapped_region = region_mapping[raw_region]  # Use integer encoding (not one-hot)
 
-    # Form feature vector (including intercept)
-    # Feature order: [1, norm_age, mapped_sex, norm_bmi, norm_children, mapped_smoker, mapped_region]
-    x = np.array([1.0, norm_age, mapped_sex, norm_bmi, norm_children, mapped_smoker, mapped_region], dtype=float)
+    # 🛠️ **FIX: Ensure we have 8 features!**
+    x = np.array([1.0, norm_age, mapped_sex, norm_bmi, norm_children, mapped_smoker, mapped_region, 1.0], dtype=float)
+
+    # Debugging: Print the shape of x before prediction
+    print(f"Feature vector x shape: {x.shape}")  # Should be (8,)
+    print(f"x values: {x}")
 
     # Compute log-charge prediction then exponentiate to get charge in dollars
     log_pred = np.dot(theta_libs, x)
@@ -87,25 +89,26 @@ frame = ttk.Frame(root, padding="10")
 frame.grid(row=0, column=0, sticky=(tk.W, tk.E))
 
 def create_labeled_entry(label_text, row, default_val):
+    """ Helper function to create labeled input fields """
     ttk.Label(frame, text=label_text).grid(row=row, column=0, sticky=tk.W, pady=5)
     entry = ttk.Entry(frame)
     entry.insert(0, str(default_val))
     entry.grid(row=row, column=1, pady=5)
     return entry
 
-# Create entry fields for raw numeric inputs
+# Create entry fields for numeric inputs
 age_entry = create_labeled_entry("Возраст:", 0, default_age)
 bmi_entry = create_labeled_entry("Индекс массы тела:", 1, default_bmi)
 children_entry = create_labeled_entry("Кол-во детей:", 2, default_children)
 
-# For categorical values, use Comboboxes populated with raw labels.
+# Dropdown for categorical inputs
 ttk.Label(frame, text="Пол:").grid(row=3, column=0, sticky=tk.W, pady=5)
 sex_combo = ttk.Combobox(frame, values=["male", "female"], state="readonly")
 sex_combo.set(default_sex.lower())
 sex_combo.grid(row=3, column=1, pady=5)
 
 ttk.Label(frame, text="Курильщик:").grid(row=4, column=0, sticky=tk.W, pady=5)
-smoker_combo = ttk.Combobox(frame, values=["Да", "Нет"], state="readonly")
+smoker_combo = ttk.Combobox(frame, values=["no", "yes"], state="readonly")
 smoker_combo.set(default_smoker.lower())
 smoker_combo.grid(row=4, column=1, pady=5)
 
@@ -126,11 +129,13 @@ def on_predict():
 
         # Get prediction (in dollars)
         prediction = predict_charge(raw_age, raw_sex, raw_bmi, raw_children, raw_smoker, raw_region)
-        messagebox.showinfo("Предсказание", f"Предсказать медицинские расходы: ${prediction:,.2f}")
+        messagebox.showinfo("Предсказание", f"Предсказанные медицинские расходы: ${prediction:,.2f}")
     except Exception as e:
-        messagebox.showerror("Error", f"An error occurred: {e}")
+        messagebox.showerror("Error", f"Произошла ошибка: {e}")
 
+# Predict button
 predict_btn = ttk.Button(frame, text="Предсказать", command=on_predict)
 predict_btn.grid(row=6, column=0, columnspan=2, pady=10)
 
+# Start UI loop
 root.mainloop()
